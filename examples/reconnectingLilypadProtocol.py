@@ -3,14 +3,14 @@ import argparse
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 
-from twistedlilypad.LilypadProtocol import LilypadProtocol
+from twistedlilypad.LilypadProtocol import LilypadClientProtocol
 from twistedlilypad.Packets.AbstractPacket import StatusCode
 from twistedlilypad.Requests.RequestGetSalt import RequestGetSalt
 from twistedlilypad.Requests.RequestAuthenticate import RequestAuthenticate
 from twistedlilypad.Utilities import saltPassword
 
 
-class autoAuthenticateLilypadProtocol(LilypadProtocol):
+class autoAuthenticateLilypadProtocol(LilypadClientProtocol):
     def connectionMade(self):
         salt = self.writeRequest(RequestGetSalt())
         salt.addCallback(self.authenticate)

@@ -1,9 +1,9 @@
 from twisted.internet import defer
 from twisted.internet.protocol import Protocol
 
-from twistedlilypad.Packets import codecLookup as packetCodecLookup, PacketRequest, PacketResult, StatusCode
-from twistedlilypad.Requests.AbstractRequest import AbstractRequest
+from twistedlilypad.Packets import AbstractPacket, codecLookup as packetCodecLookup, PacketRequest, PacketResult, StatusCode
 from twistedlilypad.Requests import codecLookup as requestCodecLookup
+from twistedlilypad.Requests.AbstractRequest import AbstractRequest
 from twistedlilypad.Results import codecLookup as resultCodecLookup
 from twistedlilypad.Utilities.DecoderUtilities import varIntParser, varIntParserWithLength
 from twistedlilypad.Utilities.PacketUtilties import makePacketStream
@@ -20,9 +20,6 @@ class LilypadProtocol(object, Protocol):
     _payloadSize = 0
     _opcode = 0
     _payload = ''
-
-    sequenceID = 0
-    currentRequests = {}
 
     def dataReceived(self, data):
         self._buffer += data
@@ -53,40 +50,11 @@ class LilypadProtocol(object, Protocol):
                 packet = packetCodecLookup[self._opcode].decode(self._payload)
                 self.packetReceived(packet)
 
-                if packet.opcode == 0x00:
-                    self.onKeepAlivePacket(packet)
-                elif packet.opcode == 0x01:
-                    self.onRequestPacket(packet)
-                elif packet.opcode == 0x02:
-                    self._resultCallbackHandler(packet)
-                    self.onResultPacket(packet)
-                elif packet.opcode == 0x03:
-                    self.onMessageEventPacket(packet)
-                elif packet.opcode == 0x04:
-                    self.onRedirectEventPacket(packet)
-                elif packet.opcode == 0x05:
-                    self.onServerEventPacket(packet)
-                else:
-                    raise RuntimeWarning("Unknown packet received")
-
-
     def rawPacketReceived(self, opcode, packetData):
         pass
 
     def packetReceived(self, packet):
         pass
-
-    def writeRequest(self, request):
-        assert isinstance(request, AbstractRequest)
-
-        deferred = defer.Deferred()
-        packet = PacketRequest(self.sequenceID, request.opcode, requestCodecLookup[request.opcode].encode(request))
-
-        self.currentRequests[self.sequenceID] = (deferred, resultCodecLookup[request.opcode])
-        self.sequenceID += 1
-        self.writePacket(packet)
-
-        return deferred
 
     def writePacket(self, packet):
         self.transport.write(makePacketStream(packet))
@@ -108,6 +76,60 @@ class LilypadProtocol(object, Protocol):
 
     def onServerEventPacket(self, ServerEventPacket):
         pass
+
+    def _packetDirector(self, packet):
+        assert isinstance(packet, AbstractPacket)
+
+        if packet.opcode == 0x00:
+            self.onKeepAlivePacket(packet)
+        elif packet.opcode == 0x01:
+            self.onRequestPacket(packet)
+        elif packet.opcode == 0x02:
+            self.onResultPacket(packet)
+        elif packet.opcode == 0x03:
+            self.onMessageEventPacket(packet)
+        elif packet.opcode == 0x04:
+            self.onRedirectEventPacket(packet)
+        elif packet.opcode == 0x05:
+            self.onServerEventPacket(packet)
+        else:
+            raise RuntimeWarning("Unknown packet received")
+
+
+class LilypadClientProtocol(LilypadProtocol):
+    sequenceID = 0
+    currentRequests = {}
+
+    def writeRequest(self, request):
+        assert isinstance(request, AbstractRequest)
+
+        deferred = defer.Deferred()
+        packet = PacketRequest(self.sequenceID, request.opcode, requestCodecLookup[request.opcode].encode(request))
+
+        self.currentRequests[self.sequenceID] = (deferred, resultCodecLookup[request.opcode])
+        self.sequenceID += 1
+        self.writePacket(packet)
+
+        return deferred
+
+    def _packetDirector(self, packet):
+        assert isinstance(packet, AbstractPacket)
+
+        if packet.opcode == 0x00:
+            self.onKeepAlivePacket(packet)
+        elif packet.opcode == 0x01:
+            self.onRequestPacket(packet)
+        elif packet.opcode == 0x02:
+            self._resultCallbackHandler(packet)
+            self.onResultPacket(packet)
+        elif packet.opcode == 0x03:
+            self.onMessageEventPacket(packet)
+        elif packet.opcode == 0x04:
+            self.onRedirectEventPacket(packet)
+        elif packet.opcode == 0x05:
+            self.onServerEventPacket(packet)
+        else:
+            raise RuntimeWarning("Unknown packet received")
 
     def _resultCallbackHandler(self, resultPacket):
         assert isinstance(resultPacket, PacketResult)

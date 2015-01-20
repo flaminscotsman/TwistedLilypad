@@ -4,14 +4,14 @@ from functools import partial
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
 
-from twistedlilypad.LilypadProtocol import LilypadProtocol
+from twistedlilypad.LilypadProtocol import LilypadClientProtocol
 from twistedlilypad.Packets.AbstractPacket import StatusCode
 from twistedlilypad.Requests.RequestGetSalt import RequestGetSalt
 from twistedlilypad.Requests.RequestAuthenticate import RequestAuthenticate
 from twistedlilypad.Utilities import saltPassword
 
 
-class filteredMessageLilypadProtocol(LilypadProtocol):
+class filteredMessageLilypadProtocol(LilypadClientProtocol):
     def __init__(self, filter):
         self.filter = filter
 
