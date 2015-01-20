@@ -50,6 +50,8 @@ class LilypadProtocol(object, Protocol):
                 packet = packetCodecLookup[self._opcode].decode(self._payload)
                 self.packetReceived(packet)
 
+                self._packetDirector(packet)
+
     def rawPacketReceived(self, opcode, packetData):
         pass
 
