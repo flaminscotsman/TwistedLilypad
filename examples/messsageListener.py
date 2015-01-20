@@ -16,7 +16,7 @@ class filteredMessageLilypadProtocol(LilypadClientProtocol):
         self.filter = filter
 
     def onMessageEventPacket(self, MessageEventPacket):
-        if self.filter and MessageEventPacket in self.filter:
+        if not self.filter or MessageEventPacket.channel in self.filter:
             print '%s: %s' % (MessageEventPacket.channel, MessageEventPacket.message)
 
 
