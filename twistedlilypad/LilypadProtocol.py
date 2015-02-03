@@ -196,21 +196,9 @@ class LilypadClientProtocol(LilypadProtocol):
         """
         assert isinstance(packet, AbstractPacket)
 
-        if packet.opcode == 0x00:
-            self.onKeepAlivePacket(packet)
-        elif packet.opcode == 0x01:
-            self.onRequestPacket(packet)
-        elif packet.opcode == 0x02:
+        if packet.opcode == 0x02:
             self._resultCallbackHandler(packet)
-            self.onResultPacket(packet)
-        elif packet.opcode == 0x03:
-            self.onMessageEventPacket(packet)
-        elif packet.opcode == 0x04:
-            self.onRedirectEventPacket(packet)
-        elif packet.opcode == 0x05:
-            self.onServerEventPacket(packet)
-        else:
-            raise RuntimeWarning("Unknown packet received")
+        super(LilypadProtocol, self)._packetDirector(packet)
 
     def _resultCallbackHandler(self, resultPacket):
         """Handles connecting the received result with the relevant deferred and codec type.
