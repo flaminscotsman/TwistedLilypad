@@ -15,6 +15,7 @@ class ParserState(object):
 
 
 class LilypadProtocol(object, Protocol):
+    """ Lilypad protocol implementation"""
     _buffer = ''
     _state = ParserState.WAITING
 
@@ -23,6 +24,14 @@ class LilypadProtocol(object, Protocol):
     _payload = ''
 
     def dataReceived(self, data):
+        """Receives incoming data.
+
+        Whenever a complete packet is received, this method extracts the payload and calls
+        :py:meth:`~_packetDirector` forward it to the correct handler.
+        :param data: A chunk of data representing a (possibly partial) lilypad packet
+        :type data: basestring
+        :rtype : None
+        """
         self._buffer += data
 
         if self._state == ParserState.WAITING:
@@ -54,33 +63,88 @@ class LilypadProtocol(object, Protocol):
                 self._packetDirector(packet)
 
     def rawPacketReceived(self, opcode, packetData):
+        """Called when an unpacked lilypad packet is received.
+
+        :param opcode: Opcode of received packet
+        :type opcode: int
+        :param packetData: Raw packed data of received packet
+        :type opcode: basestring
+        """
         pass
 
     def packetReceived(self, packet):
+        """Called when a lilypad packet is received.
+
+        :param packet: Parsed lilypad packet
+        :type packet: AbstractPacket
+        """
         pass
 
     def writePacket(self, packet):
+        """Used to send an outgoing packet.
+
+        :param packet: Outgoing packet
+        :type packet: AbstractPacket
+        """
         self.transport.write(makePacketStream(packet))
 
     def onKeepAlivePacket(self, KeepAlivePacket):
+        """Called when a keep-alive packet is received.
+
+        When overriding this method, ensure to either call this instance or to handle resending the received
+        packet otherwise the client will be disconnected.
+
+        :param KeepAlivePacket: Keep-alive packet
+        :type KeepAlivePacket: PacketKeepAlive
+        """
         self.writePacket(KeepAlivePacket)
 
     def onRequestPacket(self, RequestPacket):
+        """Called when a request packet is received.
+
+        :param RequestPacket: Request packet
+        :type RequestPacket: PacketRequest
+        """
         pass
 
     def onResultPacket(self, ResultPacket):
+        """Called when a result packet is received.
+
+        :param ResultPacket: Result packet
+        :type ResultPacket: PacketResult
+        """
         pass
 
     def onMessageEventPacket(self, MessageEventPacket):
+        """Called when a message event packet is received.
+
+        :param MessageEventPacket: Message event packet
+        :type MessageEventPacket: PacketMessageEvent
+        """
         pass
 
     def onRedirectEventPacket(self, RedirectEventPacket):
+        """Called when a redirect event packet is received.
+
+        :param RedirectEventPacket: Redirect event packet
+        :type RedirectEventPacket: PacketRedirectEvent
+        """
         pass
 
     def onServerEventPacket(self, ServerEventPacket):
+        """Called when a server event packet is received.
+
+        :param ServerEventPacket: Server event packet
+        :type ServerEventPacket: PacketServerEvent
+        """
         pass
 
     def _packetDirector(self, packet):
+        """Used to redirect the packet to the correct handler.
+
+        :param packet: Received packet
+        :type packet: AbstractPacket
+        """
         assert isinstance(packet, AbstractPacket)
 
         if packet.opcode == 0x00:
@@ -104,6 +168,15 @@ class LilypadClientProtocol(LilypadProtocol):
     currentRequests = {}
 
     def writeRequest(self, request):
+        """Used to send a request to the connect server. Returns a Deferred that is fired when the
+        corresponding result packet is received.
+
+        :param request: Outgoing request
+        :type request: AbstractRequest
+        :returns :Deferred representing the received result. Callbacks will receive the result
+        object, while failbacks will receive a Failure wrapping the status code.
+        :rtype :Deferred
+        """
         assert isinstance(request, AbstractRequest)
 
         deferred = defer.Deferred()
@@ -116,6 +189,11 @@ class LilypadClientProtocol(LilypadProtocol):
         return deferred
 
     def _packetDirector(self, packet):
+        """Overridden _packetDirector to connect the result packet handling.
+
+        :param packet: Received packet
+        :type packet: AbstractPacket
+        """
         assert isinstance(packet, AbstractPacket)
 
         if packet.opcode == 0x00:
@@ -135,6 +213,11 @@ class LilypadClientProtocol(LilypadProtocol):
             raise RuntimeWarning("Unknown packet received")
 
     def _resultCallbackHandler(self, resultPacket):
+        """Handles connecting the received result with the relevant deferred and codec type.
+
+        :param resultPacket: Received result packet
+        :type resultPacket: PacketResult
+        """
         assert isinstance(resultPacket, PacketResult)
         assert resultPacket.sequenceID in self.currentRequests
 
