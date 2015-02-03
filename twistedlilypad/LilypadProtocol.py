@@ -2,9 +2,10 @@ from twisted.internet import defer
 from twisted.internet.protocol import Protocol
 
 from twistedlilypad.Packets import AbstractPacket, codecLookup as packetCodecLookup, PacketRequest, PacketResult, StatusCode
-from twistedlilypad.Requests import codecLookup as requestCodecLookup
+from twistedlilypad.Requests import codecLookup as requestCodecLookup, RequestGetSalt, RequestAuthenticate
 from twistedlilypad.Requests.AbstractRequest import AbstractRequest
 from twistedlilypad.Results import codecLookup as resultCodecLookup
+from twistedlilypad.Utilities import saltPassword
 from twistedlilypad.Utilities.DecoderUtilities import varIntParser, varIntParserWithLength
 from twistedlilypad.Utilities.PacketUtilties import makePacketStream
 
@@ -142,3 +143,34 @@ class LilypadClientProtocol(LilypadProtocol):
             deferred.errback(resultPacket.statusCode)
             return
         deferred.callback(codec.decode(resultPacket.payload))
+
+
+class AutoAuthenticatingLilypadClientProtocol(LilypadClientProtocol):
+    def __init__(self, username="example",  password="example"):
+        self.username = username
+        self.password = password
+        super(LilypadClientProtocol, self).__init__()
+
+    def connectionMade(self):
+        salt = self.writeRequest(RequestGetSalt())
+        salt.addCallback(self.authenticate)
+        salt.addErrback(self.failSalt)
+
+    def authenticate(self, saltResult):
+        result = self.writeRequest(RequestAuthenticate(self.username, saltPassword(self.password, saltResult.salt)))
+        result.addCallback(self.passAuth)
+        result.addErrback(self.failAuth)
+
+    @staticmethod
+    def failSalt(failCause):
+        print "Failed to get salt. Cause was " + StatusCode.pprint(failCause.value)
+        return failCause
+
+    @staticmethod
+    def failAuth(failCause):
+        print "Failed to authenticate with connect server. Cause was " + StatusCode.pprint(failCause.value)
+        return failCause
+
+    @staticmethod
+    def passAuth(authResult):
+        print "Successfully authenticated with connect server"

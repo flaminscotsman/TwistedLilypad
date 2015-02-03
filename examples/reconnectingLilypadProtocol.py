@@ -3,14 +3,13 @@ import argparse
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 
-from twistedlilypad.LilypadProtocol import LilypadClientProtocol
-from twistedlilypad.Packets.AbstractPacket import StatusCode
+from twistedlilypad.LilypadProtocol import AutoAuthenticatingLilypadClientProtocol
 from twistedlilypad.Requests.RequestGetSalt import RequestGetSalt
 from twistedlilypad.Requests.RequestAuthenticate import RequestAuthenticate
 from twistedlilypad.Utilities import saltPassword
 
 
-class autoAuthenticateLilypadProtocol(LilypadClientProtocol):
+class autoAuthenticateLilypadProtocol(AutoAuthenticatingLilypadClientProtocol):
     def connectionMade(self):
         salt = self.writeRequest(RequestGetSalt())
         salt.addCallback(self.authenticate)
@@ -28,18 +27,6 @@ class autoAuthenticateLilypadProtocol(LilypadClientProtocol):
 
     def close(self, *args, **kwargs):
         self.transport.loseConnection()
-
-    @staticmethod
-    def failSalt(errcode):
-        print "Failed to get salt. Cause was " + StatusCode.pprint(errcode)
-
-    @staticmethod
-    def failAuth(errcode):
-        print "Failed to authenticate with connect server. Cause was " + StatusCode.pprint(errcode)
-
-    @staticmethod
-    def passAuth(authResult):
-        print "Successfully authenticated with connect server"
 
 
 if __name__ == "__main__":
