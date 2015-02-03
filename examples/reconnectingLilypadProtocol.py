@@ -12,13 +12,13 @@ from twistedlilypad.Utilities import saltPassword
 class autoAuthenticateLilypadProtocol(AutoAuthenticatingLilypadClientProtocol):
     def connectionMade(self):
         salt = self.writeRequest(RequestGetSalt())
-        salt.addCallback(self.authenticate)
-        salt.addErrback(self.failSalt)
+        salt.addCallback(self._authenticate)
+        salt.addErrback(self._failSalt)
 
-    def authenticate(self, saltResult):
+    def _authenticate(self, saltResult):
         authResult = self.writeRequest(RequestAuthenticate(args.username, saltPassword(args.password, saltResult.salt)))
-        authResult.addCallback(self.passAuth)
-        authResult.addErrback(self.failAuth)
+        authResult.addCallback(self._passAuth)
+        authResult.addErrback(self._failAuth)
         if args.auto_close:
             authResult.addCallback(self.scheduleAutoClose)
 

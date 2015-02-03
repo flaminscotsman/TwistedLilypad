@@ -162,6 +162,7 @@ class LilypadProtocol(object, Protocol):
 
 
 class LilypadClientProtocol(LilypadProtocol):
+    """Lilypad client-side protocol implementation which adds handles request responses"""
     sequenceID = 0
     currentRequests = {}
 
@@ -211,31 +212,34 @@ class LilypadClientProtocol(LilypadProtocol):
 
 
 class AutoAuthenticatingLilypadClientProtocol(LilypadClientProtocol):
-    def __init__(self, username="example",  password="example"):
-        self.username = username
-        self.password = password
-        super(LilypadClientProtocol, self).__init__()
+    """Lilypad client-side protocol implementation which handles authentication with the connect server
+
+    :cvar username: Username to use for authentication with the connect server
+    :cvar password: Password to use for authentication with the connect server
+    """
+    username="example"
+    password="example"
 
     def connectionMade(self):
         salt = self.writeRequest(RequestGetSalt())
-        salt.addCallback(self.authenticate)
-        salt.addErrback(self.failSalt)
+        salt.addCallback(self._authenticate)
+        salt.addErrback(self._failSalt)
 
-    def authenticate(self, saltResult):
+    def _authenticate(self, saltResult):
         result = self.writeRequest(RequestAuthenticate(self.username, saltPassword(self.password, saltResult.salt)))
-        result.addCallback(self.passAuth)
-        result.addErrback(self.failAuth)
+        result.addCallback(self._passAuth)
+        result.addErrback(self._failAuth)
 
     @staticmethod
-    def failSalt(failCause):
+    def _failSalt(failCause):
         print "Failed to get salt. Cause was " + StatusCode.pprint(failCause.value)
         return failCause
 
     @staticmethod
-    def failAuth(failCause):
+    def _failAuth(failCause):
         print "Failed to authenticate with connect server. Cause was " + StatusCode.pprint(failCause.value)
         return failCause
 
     @staticmethod
-    def passAuth(authResult):
+    def _passAuth(authResult):
         print "Successfully authenticated with connect server"
