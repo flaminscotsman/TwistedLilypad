@@ -145,8 +145,6 @@ class LilypadProtocol(object, Protocol):
         :param packet: Received packet
         :type packet: AbstractPacket
         """
-        assert isinstance(packet, AbstractPacket)
-
         if packet.opcode == 0x00:
             self.onKeepAlivePacket(packet)
         elif packet.opcode == 0x01:
@@ -177,8 +175,6 @@ class LilypadClientProtocol(LilypadProtocol):
         object, while failbacks will receive a Failure wrapping the status code.
         :rtype :Deferred
         """
-        assert isinstance(request, AbstractRequest)
-
         deferred = defer.Deferred()
         packet = PacketRequest(self.sequenceID, request.opcode, requestCodecLookup[request.opcode].encode(request))
 
@@ -194,8 +190,6 @@ class LilypadClientProtocol(LilypadProtocol):
         :param packet: Received packet
         :type packet: AbstractPacket
         """
-        assert isinstance(packet, AbstractPacket)
-
         if packet.opcode == 0x02:
             self._resultCallbackHandler(packet)
         super(LilypadProtocol, self)._packetDirector(packet)
@@ -206,8 +200,8 @@ class LilypadClientProtocol(LilypadProtocol):
         :param resultPacket: Received result packet
         :type resultPacket: PacketResult
         """
-        assert isinstance(resultPacket, PacketResult)
-        assert resultPacket.sequenceID in self.currentRequests
+        if resultPacket.sequenceID not in self.currentRequests:
+            raise RuntimeWarning("Could not find deferred for ResultPacket (#" + resultPacket.sequenceID + ")")
 
         deferred, codec = self.currentRequests.pop(resultPacket.sequenceID)
         if resultPacket.statusCode != StatusCode.SUCCESS:
