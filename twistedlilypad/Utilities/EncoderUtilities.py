@@ -8,7 +8,7 @@ uft8_encoder = getencoder('UTF_8')
 def varIntEncoder(number):
     result = []
     while number >= 0x80:
-        result.append(pack('>B', number | 0x80))
+        result.append(pack('>B', (number & 0x7F) | 0x80))
         number >>= 7
 
     result.append(pack('>B', number))
