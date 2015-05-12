@@ -91,13 +91,10 @@ class LilypadProtocol(object, Protocol):
     def onKeepAlivePacket(self, KeepAlivePacket):
         """Called when a keep-alive packet is received.
 
-        When overriding this method, ensure to either call this instance or to handle resending the received
-        packet otherwise the client will be disconnected.
-
         :param KeepAlivePacket: Keep-alive packet
         :type KeepAlivePacket: PacketKeepAlive
         """
-        self.writePacket(KeepAlivePacket)
+        pass
 
     def onRequestPacket(self, RequestPacket):
         """Called when a request packet is received.
@@ -165,6 +162,17 @@ class LilypadClientProtocol(LilypadProtocol):
     """Lilypad client-side protocol implementation which adds handles request responses"""
     sequenceID = 0
     currentRequests = {}
+
+    def onKeepAlivePacket(self, KeepAlivePacket):
+        """Called when a keep-alive packet is received.
+
+        When overriding this method, ensure to either call this instance or to handle resending the received
+        packet otherwise the client will be disconnected.
+
+        :param KeepAlivePacket: Keep-alive packet
+        :type KeepAlivePacket: PacketKeepAlive
+        """
+        self.writePacket(KeepAlivePacket)
 
     def writeRequest(self, request):
         """Used to send a request to the connect server. Returns a Deferred that is fired when the
