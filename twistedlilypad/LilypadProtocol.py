@@ -201,7 +201,7 @@ class LilypadClientProtocol(LilypadProtocol):
         """
         if packet.opcode == 0x02:
             self._resultCallbackHandler(packet)
-        super(LilypadProtocol, self)._packetDirector(packet)
+        super(LilypadClientProtocol, self)._packetDirector(packet)
 
     def _resultCallbackHandler(self, resultPacket):
         """Handles connecting the received result with the relevant deferred and codec type.
