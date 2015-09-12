@@ -15,6 +15,15 @@ class PacketServerEvent(AbstractPacket):
         self.address = address
         self.port = port
 
+    def __eq__(self, other):
+        if not isinstance(other, PacketServerEvent):
+            return NotImplemented
+        return self.add == other.add and \
+            self.address == other.address and \
+            self.port == other.port and \
+            self.securityKey == other.securityKey and \
+            self.server == other.server
+
 
 class PacketServerEventCodec(AbstractPacketCodec):
     @staticmethod
@@ -27,10 +36,9 @@ class PacketServerEventCodec(AbstractPacketCodec):
                    varIntPrefixedStringEncoder(packet.address) + pack('>H', packet.port)
         return result
 
-
     @staticmethod
     def decode(payload):
-        add = unpack_from('>B', payload)[0] == 0
+        add = unpack_from('>B', payload)[0] == 1
         payload = payload[calcsize('>B'):]
         server, payload = varIntPrefixedStringParser(payload)
 

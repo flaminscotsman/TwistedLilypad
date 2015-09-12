@@ -10,6 +10,12 @@ class PacketRedirectEvent(AbstractPacket):
         self.server = server
         self.player = player
 
+    def __eq__(self, other):
+        if not isinstance(other, PacketRedirectEvent):
+            return NotImplemented
+        return self.server == other.server and \
+            self.player == other.player
+
 
 class PacketRedirectEventCodec(AbstractPacketCodec):
     @staticmethod

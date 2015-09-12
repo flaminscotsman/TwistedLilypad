@@ -9,6 +9,11 @@ class PacketKeepAlive(AbstractPacket):
     def __init__(self, random):
         self.random = random
 
+    def __eq__(self, other):
+        if not isinstance(other, PacketKeepAlive):
+            return NotImplemented
+        return self.random == other.random
+
 
 class PacketKeepAliveCodec(AbstractPacketCodec):
     @staticmethod

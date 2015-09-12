@@ -15,6 +15,13 @@ class PacketRequest(AbstractPacket):
     def payloadSize(self):
         return len(self.payload)
 
+    def __eq__(self, other):
+        if not isinstance(other, PacketRequest):
+            return NotImplemented
+        return self.sequenceID == other.sequenceID and \
+            self.requestID == other.requestID and \
+            self.payload == other.payload
+
 
 class PacketRequestCodec(AbstractPacketCodec):
     @staticmethod

@@ -19,6 +19,13 @@ class PacketMessageEvent(AbstractPacket):
         self.channel = channel
         self.payload = payload
 
+    def __eq__(self, other):
+        if not isinstance(other, PacketMessageEvent):
+            return NotImplemented
+        return self.sender == other.sender and \
+            self.channel == other.channel and \
+            self.payload == other.payload
+
     @property
     def payloadSize(self):
         return len(self.payload)
