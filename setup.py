@@ -2,8 +2,7 @@ from setuptools import setup
 
 setup(
     name='twistedlilypad',
-    version='1.0.2',
-
+    version='1.0.3',
 
     description='An implementation of the lilypad protocol in python',
 
