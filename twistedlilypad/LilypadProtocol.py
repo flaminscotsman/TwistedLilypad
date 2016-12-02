@@ -136,6 +136,14 @@ class LilypadProtocol(object, Protocol):
         """
         pass
 
+    def onPlayerEventPacket(self, PlayerEventPacket):
+        """Called when a server event packet is received.
+
+        :param PlayerEventPacket: Player event packet
+        :type PlayerEventPacket: PacketPlayerEvent
+        """
+        pass
+
     def _packetDirector(self, packet):
         """Used to redirect the packet to the correct handler.
 
@@ -154,6 +162,8 @@ class LilypadProtocol(object, Protocol):
             self.onRedirectEventPacket(packet)
         elif packet.opcode == 0x05:
             self.onServerEventPacket(packet)
+        elif packet.opcode == 0x06:
+            self.onPlayerEventPacket(packet)
         else:
             raise RuntimeWarning("Unknown packet received")
 

@@ -29,7 +29,6 @@ SERVER_EVENT_REMOVE_PACKET = PacketServerEvent(False, 'server')
 SERVER_EVENT_REMOVE_STRING = '\x09\x05\x00\x06server'
 
 
-
 class TestLilypadProtocol(TestCase):
     def setUp(self):
         self.transport = proto_helpers.StringTransport()

@@ -5,6 +5,7 @@ from twistedlilypad.Packets.PacketRedirectEvent import PacketRedirectEvent, Pack
 from twistedlilypad.Packets.PacketRequest import PacketRequest, PacketRequestCodec
 from twistedlilypad.Packets.PacketResult import PacketResult, PacketResultCodec
 from twistedlilypad.Packets.PacketServerEvent import PacketServerEvent, PacketServerEventCodec
+from twistedlilypad.Packets.PacketPlayerEvent import PacketPlayerEvent, PacketPlayerEventCodec
 
 
 codecLookup = {
@@ -15,5 +16,6 @@ codecLookup = {
     (PacketRequest, PacketRequestCodec),
     (PacketResult, PacketResultCodec),
     (PacketServerEvent, PacketServerEventCodec),
+    (PacketPlayerEvent, PacketPlayerEventCodec),
 )}
 """:type : dict[int, AbstractPacketCodec]"""
