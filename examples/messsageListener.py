@@ -4,20 +4,20 @@ from functools import partial
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ClientEndpoint, connectProtocol
 
-from twistedlilypad.LilypadProtocol import LilypadClientProtocol
-from twistedlilypad.Packets.AbstractPacket import StatusCode
-from twistedlilypad.Requests.RequestGetSalt import RequestGetSalt
-from twistedlilypad.Requests.RequestAuthenticate import RequestAuthenticate
-from twistedlilypad.Utilities import saltPassword
+from twistedlilypad.protocol import LilypadClientProtocol
+from twistedlilypad.packets.abstract_packet import StatusCode
+from twistedlilypad.requests.get_salt_request import RequestGetSalt
+from twistedlilypad.requests.authenticate_request import RequestAuthenticate
+from twistedlilypad.utilities import salt_password
 
 
 class filteredMessageLilypadProtocol(LilypadClientProtocol):
     def __init__(self, filter):
         self.filter = filter
 
-    def onMessageEventPacket(self, MessageEventPacket):
-        if not self.filter or MessageEventPacket.channel in self.filter:
-            print '%s: %s' % (MessageEventPacket.channel, MessageEventPacket.message)
+    def on_message_event_packet(self, message_event_packet):
+        if not self.filter or message_event_packet.channel in self.filter:
+            print('{}: {}'.format(message_event_packet.channel, message_event_packet.message))
 
 
 if __name__ == "__main__":
@@ -31,16 +31,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     def failSalt(errcode):
-        print "Failed to get salt. Cause was " + StatusCode.pprint(errcode)
+        print("Failed to get salt. Cause was " + StatusCode.pprint(errcode))
 
     def failAuth(errcode):
-        print "Failed to authenticate with connect server. Cause was " + StatusCode.pprint(errcode)
+        print("Failed to authenticate with connect server. Cause was " + StatusCode.pprint(errcode))
 
-    def passAuth(authResult):
-        print "Successfully authenticated with connect server"
+    def passAuth(_):
+        print("Successfully authenticated with connect server")
 
     def authenticate(saltResult, protocol=None):
-        authResult = protocol.writeRequest(RequestAuthenticate(args.username, saltPassword(args.password, saltResult.salt)))
+        authResult = protocol.writeRequest(RequestAuthenticate(args.username, salt_password(args.password, saltResult.salt)))
         authResult.addCallback(passAuth)
         authResult.addErrback(failAuth)
 

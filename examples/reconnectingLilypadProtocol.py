@@ -3,22 +3,22 @@ import argparse
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 
-from twistedlilypad.LilypadProtocol import AutoAuthenticatingLilypadClientProtocol
-from twistedlilypad.Requests.RequestGetSalt import RequestGetSalt
-from twistedlilypad.Requests.RequestAuthenticate import RequestAuthenticate
-from twistedlilypad.Utilities import saltPassword
+from twistedlilypad.protocol import AutoAuthenticatingLilypadClientProtocol
+from twistedlilypad.requests.get_salt_request import RequestGetSalt
+from twistedlilypad.requests.authenticate_request import RequestAuthenticate
+from twistedlilypad.utilities import salt_password
 
 
 class autoAuthenticateLilypadProtocol(AutoAuthenticatingLilypadClientProtocol):
     def connectionMade(self):
         salt = self.writeRequest(RequestGetSalt())
         salt.addCallback(self._authenticate)
-        salt.addErrback(self._failSalt)
+        salt.addErrback(self._fail_salt)
 
-    def _authenticate(self, saltResult):
-        authResult = self.writeRequest(RequestAuthenticate(args.username, saltPassword(args.password, saltResult.salt)))
-        authResult.addCallback(self._passAuth)
-        authResult.addErrback(self._failAuth)
+    def _authenticate(self, salt_result):
+        authResult = self.writeRequest(RequestAuthenticate(args.username, salt_password(args.password, salt_result.salt)))
+        authResult.addCallback(self._pass_auth)
+        authResult.addErrback(self._fail_auth)
         if args.auto_close:
             authResult.addCallback(self.scheduleAutoClose)
 

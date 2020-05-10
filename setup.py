@@ -1,15 +1,16 @@
-from setuptools import setup
+from setuptools import find_packages, setup
+
 
 setup(
     name='twistedlilypad',
-    version='1.0.3',
+    version='2.0.0',
 
     description='An implementation of the lilypad protocol in python',
 
     url='https://github.com/flaminscotsman/TwistedLilypad',
 
     author='Alasdair Scott',
-    author_email='ali@flaminscotsman.co.uk',
+    author_email='ali+python@flaminscotsman.co.uk',
 
     license='MIT',
 
@@ -25,19 +26,13 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
     ],
 
     keywords='lilypad minecraft',
 
-    packages=[
-        'twistedlilypad',
-        'twistedlilypad.Packets',
-        'twistedlilypad.Requests',
-        'twistedlilypad.Results',
-        'twistedlilypad.Utilities'
-    ],
+    packages=find_packages(exclude=('tests', 'tests.utilities')),
 
-    install_requires=['twisted']
+    install_requires=['twisted'],
 )
